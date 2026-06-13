@@ -73,6 +73,7 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
   const [tableau, setTableau] = useState<Card[][]>([[], [], [], [], [], [], []]);
   const [selectedCard, setSelectedCard] = useState<{ source: string; col?: number; idx?: number } | null>(null);
   const [status, setStatus] = useState<'playing' | 'won' | 'lost'>('playing');
+  const [isAutoCompleting, setIsAutoCompleting] = useState(false);
 
   const startNewGame = () => {
     audio.playClick();
@@ -94,6 +95,7 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
     setTableau(newTableau);
     setSelectedCard(null);
     setStatus('playing');
+    setIsAutoCompleting(false);
   };
 
   const checkGameOverState = (
@@ -188,6 +190,73 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
     return true;
   };
 
+  const autoCompleteStep = (): boolean => {
+    // Try to find the next card that can be placed on foundations
+    for (let fIdx = 0; fIdx < 4; fIdx++) {
+      const destFound = foundations[fIdx];
+      const nextValue = destFound.length + 1;
+      const targetSuit = SUITS[fIdx];
+
+      // 1. Check if it's in the waste pile (must be the top card)
+      if (waste.length > 0) {
+        const topWaste = waste[waste.length - 1];
+        if (topWaste.suit === targetSuit && topWaste.value === nextValue) {
+          setWaste(prev => prev.slice(0, -1));
+          setFoundations(prev => {
+            const next = [...prev];
+            next[fIdx] = [...next[fIdx], topWaste];
+            return next;
+          });
+          audio.playScore();
+          return true;
+        }
+      }
+
+      // 2. Check if it's the top card of any tableau column
+      for (let tCol = 0; tCol < 7; tCol++) {
+        const colCards = tableau[tCol];
+        if (colCards.length > 0) {
+          const topCard = colCards[colCards.length - 1];
+          if (topCard.suit === targetSuit && topCard.value === nextValue) {
+            setTableau(prev => {
+              const next = [...prev];
+              next[tCol] = next[tCol].slice(0, -1);
+              if (next[tCol].length > 0) {
+                next[tCol][next[tCol].length - 1].faceUp = true;
+              }
+              return next;
+            });
+            setFoundations(prev => {
+              const next = [...prev];
+              next[fIdx] = [...next[fIdx], topCard];
+              return next;
+            });
+            audio.playScore();
+            return true;
+          }
+        }
+      }
+    }
+
+    // 3. If the next cards are in the deck/waste, draw or recycle
+    if (deck.length > 0) {
+      const nextCard = deck[deck.length - 1];
+      nextCard.faceUp = true;
+      setWaste(prev => [...prev, nextCard]);
+      setDeck(prev => prev.slice(0, -1));
+      audio.playClick();
+      return true;
+    } else if (waste.length > 1) {
+      const reversed = [...waste].reverse().map(c => ({ ...c, faceUp: false }));
+      setDeck(reversed);
+      setWaste([]);
+      audio.playClick();
+      return true;
+    }
+
+    return false;
+  };
+
   useEffect(() => {
     startNewGame();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,11 +267,25 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
 
     // Check if won
     const won = foundations.every(f => f.length === 13);
-    if (won) return;
+    if (won) {
+      setIsAutoCompleting(false);
+      return;
+    }
+
+    // Check if we should trigger auto-complete:
+    // No face-down cards in tableau AND at least some cards remaining to be placed
+    const hasFaceDownTableau = tableau.some(col => col.some(card => !card.faceUp));
+    const hasTableauCards = tableau.some(col => col.length > 0);
+    const hasWasteOrDeck = deck.length > 0 || waste.length > 0;
+
+    if (!hasFaceDownTableau && (hasTableauCards || hasWasteOrDeck) && !isAutoCompleting) {
+      setIsAutoCompleting(true);
+      return;
+    }
 
     // Check if lost (no moves left)
     const lost = checkGameOverState(deck, waste, tableau, foundations);
-    if (lost) {
+    if (lost && !isAutoCompleting) {
       setStatus('lost');
       audio.playLose();
       onUpdateRecord('solitaire', {
@@ -212,10 +295,24 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck, waste, tableau, foundations, status]);
+  }, [deck, waste, tableau, foundations, status, isAutoCompleting]);
+
+  useEffect(() => {
+    if (!isAutoCompleting || status !== 'playing') return;
+
+    const timer = setTimeout(() => {
+      const moved = autoCompleteStep();
+      if (!moved) {
+        setIsAutoCompleting(false);
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAutoCompleting, deck, waste, tableau, foundations, status]);
 
   const handleDrawCard = () => {
-    if (status !== 'playing') return;
+    if (status !== 'playing' || isAutoCompleting) return;
     audio.playClick();
     setSelectedCard(null);
     if (deck.length === 0) {
@@ -232,7 +329,7 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
   };
 
   const handleCardClick = (source: string, col?: number, idx?: number) => {
-    if (status !== 'playing') return;
+    if (status !== 'playing' || isAutoCompleting) return;
     audio.playClick();
 
     if (selectedCard) {
