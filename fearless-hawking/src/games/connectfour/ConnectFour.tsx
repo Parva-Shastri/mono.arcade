@@ -484,14 +484,14 @@ export const ConnectFour: React.FC<ConnectFourProps> = ({ onBack, record, onUpda
                       height: '38px',
                       borderRadius: '50%',
                       border: '2px solid var(--border)',
-                      backgroundColor: 'var(--bg)',
+                      background: 'var(--bg)',
                       boxShadow: 'inset 0 3px 3px rgba(0,0,0,0.2)',
                     };
 
                     if (player === 'player1') {
                       tokenStyle = {
                         ...tokenStyle,
-                        backgroundColor: 'var(--fg)',
+                        background: 'var(--fg)',
                         boxShadow: 'inset 0 3px 3px rgba(255,255,255,0.2)',
                       };
                     } else if (player === 'player2') {
