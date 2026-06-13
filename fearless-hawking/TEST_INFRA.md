@@ -16,7 +16,7 @@ The MONO.ARCADE test suite is built upon three core design pillars:
 
 ## 2. Feature Inventory
 
-The 10 new casual games added to the catalog are registered and mapped to the original requirements as follows:
+The 9 new casual games added to the catalog are registered and mapped to the original requirements as follows:
 
 | Game ID | Game Title | Genre / Type | ORIGINAL_REQUEST Section | T1 Cases | T2 Cases | T3 Checked | T4 Checked |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
@@ -27,12 +27,11 @@ The 10 new casual games added to the catalog are registered and mapped to the or
 | `pong` | Pong | Retro Paddle vs AI | R1.5 | 5 | 5 | Yes | Yes |
 | `breakout` | Breakout | Brick-Breaking Ball | R1.6 | 5 | 5 | Yes | Yes |
 | `tetris` | Tetris | Falling Blocks | R1.7 | 5 | 5 | Yes | Yes |
-| `blackjack` | Blackjack | Card Game vs Dealer | R1.8 | 5 | 5 | Yes | Yes |
 | `connectfour`| Connect Four | Grid Dropper | R1.9 | 5 | 5 | Yes | Yes |
 | `maze` | Maze Escape | Procedural Navigation | R1.10 | 5 | 5 | Yes | Yes |
 
-*   **Tier 1 (Feature Coverage):** 5 happy-path test cases per game (50 total). Verifies game launching, layout rendering, basic controls, updating score, and clean exiting.
-*   **Tier 2 (Boundary & Corner Cases):** 5 edge-case tests per game (50 total). Verifies boundary movements, game-over boundaries, victory limits, invalid controls/inputs, and AudioContext integration.
+*   **Tier 1 (Feature Coverage):** 5 happy-path test cases per game (45 total). Verifies game launching, layout rendering, basic controls, updating score, and clean exiting.
+*   **Tier 2 (Boundary & Corner Cases):** 5 edge-case tests per game (45 total). Verifies boundary movements, game-over boundaries, victory limits, invalid controls/inputs, and AudioContext integration.
 *   **Tier 3 (Cross-Feature Combinations):** System-wide settings tests (10 total) covering local storage sync, CRT filter toggles, theme changes, volume configurations, and routing stability.
 *   **Tier 4 (Real-World Applications):** Multi-game sequential flows (5 total) simulating typical user arcade sessions.
 
@@ -95,7 +94,6 @@ src/
 │   ├── pong.test.ts        // Tests for Pong (Tier 1 & 2)
 │   ├── breakout.test.ts    // Tests for Breakout (Tier 1 & 2)
 │   ├── tetris.test.ts      // Tests for Tetris (Tier 1 & 2)
-│   ├── blackjack.test.ts   // Tests for Blackjack (Tier 1 & 2)
 │   ├── connectfour.test.ts // Tests for Connect Four (Tier 1 & 2)
 │   └── maze.test.ts        // Tests for Maze Escape (Tier 1 & 2)
 ```
@@ -204,21 +202,6 @@ To enable automated testing, all interactive elements, wrapper elements, and gam
 *   Game Status: `[data-testid="tetris-status-text"]`
 *   Start / Pause Action Button: `[data-testid="tetris-start-btn"]`
 
-#### Blackjack (`blackjack`)
-*   Game container: `[data-testid="game-blackjack"]`
-*   Dealer Cards Area: `[data-testid="blackjack-dealer-hand"]`
-    *   Card item: `[data-testid="blackjack-dealer-card-${idx}"]`
-    *   Dealer score sum: `[data-testid="blackjack-dealer-total"]`
-*   Player Cards Area: `[data-testid="blackjack-player-hand"]`
-    *   Card item: `[data-testid="blackjack-player-card-${idx}"]`
-    *   Player score sum: `[data-testid="blackjack-player-total"]`
-*   Hit action button: `[data-testid="blackjack-btn-hit"]`
-*   Stand action button: `[data-testid="blackjack-btn-stand"]`
-*   Double Down action button: `[data-testid="blackjack-btn-double"]`
-*   Player Chip Wallet Balance: `[data-testid="blackjack-chips"]`
-*   Bet Amount Display: `[data-testid="blackjack-bet"]`
-*   Game Status: `[data-testid="blackjack-status-text"]`
-
 #### Connect Four (`connectfour`)
 *   Game container: `[data-testid="game-connectfour"]`
 *   Column Selector / Drop Action Zone: `[data-testid="connectfour-col-${col}"]` (columns 0–6)
@@ -260,9 +243,9 @@ Tier 4 tests execute multi-game application lifecycles in sequence to verify sta
 *   **Execution Flow:**
     1.  Test clicks global volume button `[data-testid="audio-toggle"]` on the main dashboard to mute sounds.
     2.  Assert that the volume state is saved to `mono_games_muted` as `true` in localStorage.
-    3.  Launch Blackjack (`blackjack`) by clicking `[data-testid="launch-game-blackjack"]`.
+    3.  Launch Memory Match (`memory`) by clicking `[data-testid="launch-game-memory"]`.
     4.  Verify that the audio control element in the game wrapper is set to the muted state.
-    5.  Perform card actions (clicks to "HIT" or "STAND"). Spy on `AudioContext` / audio node creation to assert no sound tones are played.
+    5.  Perform a few game interactions. Spy on `AudioContext` / audio node creation to assert no sound tones are played.
     6.  Click back to dashboard `[data-testid="game-back-btn"]`.
     7.  Unmute the volume globally `[data-testid="audio-toggle"]`.
     8.  Launch Connect Four (`connectfour`) by clicking `[data-testid="launch-game-connectfour"]`.

@@ -24,16 +24,15 @@
   - `src/games/pong/`
   - `src/games/breakout/`
   - `src/games/tetris/`
-  - `src/games/blackjack/`
   - `src/games/connectfour/`
   - `src/games/maze/`
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | System Integration Prep | Extend `src/types.ts`, `src/App.tsx`, `src/components/Dashboard.tsx` with all 10 new game IDs, and create stub components. | None | DONE |
+| 1 | System Integration Prep | Extend `src/types.ts`, `src/App.tsx`, `src/components/Dashboard.tsx` with all 9 new game IDs, and create stub components. | None | DONE |
 | 2 | Board & Puzzle Games | Implement Minesweeper, Sudoku, and Connect Four games with full logic, styling, and audio. | M1 | DONE |
-| 3 | Card & Word Games | Implement Memory Match, Wordle Clone, and Blackjack games with full logic, styling, and audio. | M1 | PLANNED |
+| 3 | Card & Word Games | Implement Memory Match and Wordle Clone games with full logic, styling, and audio. | M1 | PLANNED |
 | 4 | Real-time & Action Games | Implement Pong, Breakout, Tetris, and Maze Escape games with full logic, styling, and audio. | M1 | PLANNED |
 | 5 | Dual Track Validation & Hardening | Opaque-box E2E test verification, bug fixing, and adversarial testing. | M2, M3, M4 | PLANNED |
 
