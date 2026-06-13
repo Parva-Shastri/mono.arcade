@@ -247,6 +247,54 @@ export const App: React.FC = () => {
           onUpdateRecord={handleUpdateRecord}
         />
       )}
+
+      {activeGame === 'solitaire' && (
+        <Solitaire
+          onBack={() => setActiveGame(null)}
+          record={scores.solitaire}
+          onUpdateRecord={handleUpdateRecord}
+        />
+      )}
+
+      {activeGame === 'hangman' && (
+        <Hangman
+          onBack={() => setActiveGame(null)}
+          record={scores.hangman}
+          onUpdateRecord={handleUpdateRecord}
+        />
+      )}
+
+      {activeGame === 'chess' && (
+        <Chess
+          onBack={() => setActiveGame(null)}
+          record={scores.chess}
+          onUpdateRecord={handleUpdateRecord}
+        />
+      )}
+
+      {activeGame === 'mario' && (
+        <Mario
+          onBack={() => setActiveGame(null)}
+          record={scores.mario}
+          onUpdateRecord={handleUpdateRecord}
+        />
+      )}
+
+      {activeGame === 'carrom' && (
+        <Carrom
+          onBack={() => setActiveGame(null)}
+          record={scores.carrom}
+          onUpdateRecord={handleUpdateRecord}
+        />
+      )}
+
+      {activeGame === 'spaceshooter' && (
+        <SpaceShooter
+          onBack={() => setActiveGame(null)}
+          record={scores.spaceshooter}
+          onUpdateRecord={handleUpdateRecord}
+        />
+      )}
     </div>
   );
 };
