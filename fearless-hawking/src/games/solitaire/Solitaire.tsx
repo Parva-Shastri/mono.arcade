@@ -96,10 +96,123 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
     setStatus('playing');
   };
 
+  const checkGameOverState = (
+    currentDeck: Card[],
+    currentWaste: Card[],
+    currentTableau: Card[][],
+    currentFoundations: Card[][]
+  ): boolean => {
+    // 0. Ensure the game is fully initialized with all 52 cards
+    const totalCards = currentDeck.length + currentWaste.length +
+      currentTableau.reduce((acc, col) => acc + col.length, 0) +
+      currentFoundations.reduce((acc, col) => acc + col.length, 0);
+    if (totalCards !== 52) return false;
+
+    // 1. Can we draw a card or recycle?
+    if (currentDeck.length > 0) return false;
+    if (currentWaste.length > 1) return false;
+
+    // 2. Can we move any face-up card from tableau to another tableau?
+    for (let srcCol = 0; srcCol < 7; srcCol++) {
+      const srcCards = currentTableau[srcCol];
+      if (srcCards.length === 0) continue;
+
+      for (let srcIdx = 0; srcIdx < srcCards.length; srcIdx++) {
+        const cardToMove = srcCards[srcIdx];
+        if (!cardToMove.faceUp) continue;
+
+        for (let destCol = 0; destCol < 7; destCol++) {
+          if (srcCol === destCol) continue;
+
+          const destCards = currentTableau[destCol];
+          const destTop = destCards[destCards.length - 1];
+
+          if (!destTop) {
+            if (cardToMove.value === 13 && srcIdx > 0) {
+              return false;
+            }
+          } else {
+            if (destTop.isRed !== cardToMove.isRed && destTop.value === cardToMove.value + 1) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+
+    // 3. Can we move the top card of any tableau column to a foundation?
+    for (let srcCol = 0; srcCol < 7; srcCol++) {
+      const srcCards = currentTableau[srcCol];
+      if (srcCards.length === 0) continue;
+      const cardToMove = srcCards[srcCards.length - 1];
+
+      for (let destCol = 0; destCol < 4; destCol++) {
+        const destFound = currentFoundations[destCol];
+        const destTop = destFound[destFound.length - 1];
+
+        if (!destTop) {
+          if (cardToMove.value === 1) return false;
+        } else {
+          if (destTop.suit === cardToMove.suit && destTop.value + 1 === cardToMove.value) return false;
+        }
+      }
+    }
+
+    // 4. Can we move the top card of the waste pile to any tableau or foundation?
+    if (currentWaste.length > 0) {
+      const cardToMove = currentWaste[currentWaste.length - 1];
+
+      for (let destCol = 0; destCol < 7; destCol++) {
+        const destCards = currentTableau[destCol];
+        const destTop = destCards[destCards.length - 1];
+
+        if (!destTop) {
+          if (cardToMove.value === 13) return false;
+        } else {
+          if (destTop.isRed !== cardToMove.isRed && destTop.value === cardToMove.value + 1) return false;
+        }
+      }
+
+      for (let destCol = 0; destCol < 4; destCol++) {
+        const destFound = currentFoundations[destCol];
+        const destTop = destFound[destFound.length - 1];
+
+        if (!destTop) {
+          if (cardToMove.value === 1) return false;
+        } else {
+          if (destTop.suit === cardToMove.suit && destTop.value + 1 === cardToMove.value) return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
   useEffect(() => {
     startNewGame();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (status !== 'playing') return;
+
+    // Check if won
+    const won = foundations.every(f => f.length === 13);
+    if (won) return;
+
+    // Check if lost (no moves left)
+    const lost = checkGameOverState(deck, waste, tableau, foundations);
+    if (lost) {
+      setStatus('lost');
+      audio.playLose();
+      onUpdateRecord('solitaire', {
+        highScore: record.highScore,
+        gamesPlayed: record.gamesPlayed + 1,
+        gamesWon: record.gamesWon,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck, waste, tableau, foundations, status]);
 
   const handleDrawCard = () => {
     if (status !== 'playing') return;
