@@ -3,6 +3,14 @@ import App from '../App';
 import { testRegistry, runTests } from './runner';
 import type { TestCase, TestResult, TestTier } from './runner';
 
+// Eagerly import all test modules after runner has finished evaluating
+// to avoid circular dependency TDZ (Temporal Dead Zone) ReferenceError
+try {
+  import.meta.glob('./**/*.test.ts', { eager: true });
+} catch (e) {
+  console.warn('Failed to auto-discover and load test modules:', e);
+}
+
 export const TestRunner: React.FC = () => {
   const [results, setResults] = useState<Record<string, TestResult>>({});
   const [running, setRunning] = useState(false);
@@ -172,7 +180,7 @@ export const TestRunner: React.FC = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: '#0a0a0a', color: '#33ff33', fontFamily: 'var(--font-mono)' }}>
       {/* CRT Scanline Filter specifically over the Test Runner UI */}
-      <div className="crt-scanlines" style={{ opacity: 0.15, pointerEvents: 'none' }} />
+      <div className="test-runner-scanlines" style={{ opacity: 0.15, pointerEvents: 'none' }} />
       
       {/* Test Runner Dashboard Console (Left Panel) */}
       <div style={{

@@ -97,7 +97,8 @@ body {
 }
 
 /* Retro overlays */
-.crt-scanlines {
+.crt-scanlines,
+.test-runner-scanlines {
   position: fixed;
   top: 0;
   left: 0;
@@ -113,7 +114,8 @@ body {
   opacity: 0.8;
 }
 
-[data-theme='dark'] .crt-scanlines {
+[data-theme='dark'] .crt-scanlines,
+[data-theme='dark'] .test-runner-scanlines {
   background: linear-gradient(
     rgba(18, 16, 16, 0) 50%, 
     rgba(255, 255, 255, 0.06) 50%

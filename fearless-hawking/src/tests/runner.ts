@@ -116,9 +116,6 @@ declare global {
   }
 }
 
-// Automatically load and self-register all test files using Vite eager glob imports
-try {
-  import.meta.glob('./**/*.test.ts', { eager: true });
-} catch (e) {
-  console.warn('Failed to auto-discover and load test modules:', e);
-}
+// Note: Eager loading of test cases has been moved to TestRunner.tsx
+// to prevent circular dependency TDZ (Temporal Dead Zone) reference errors.
+
