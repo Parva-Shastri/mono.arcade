@@ -194,33 +194,39 @@ export const Maze: React.FC<MazeProps> = ({ onBack, record, onUpdateRecord }) =>
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const computed = window.getComputedStyle(canvas);
+    const bg = computed.getPropertyValue('--bg').trim() || '#000000';
+    const fg = computed.getPropertyValue('--fg').trim() || '#ffffff';
+    const border = computed.getPropertyValue('--border').trim() || '#ffffff';
+    const grayMid = computed.getPropertyValue('--gray-mid').trim() || '#666666';
+
     // Draw background
-    ctx.fillStyle = 'var(--bg)';
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     // Draw Maze walls & paths
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         if (grid[r][c] === 1) {
-          ctx.fillStyle = 'var(--fg)';
+          ctx.fillStyle = fg;
           ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-          ctx.strokeStyle = 'var(--border)';
+          ctx.strokeStyle = border;
           ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
       }
     }
 
     // Draw Exit point (hatched pattern or custom block)
-    ctx.fillStyle = 'var(--gray-mid)';
+    ctx.fillStyle = grayMid;
     ctx.fillRect((GRID_SIZE - 2) * CELL_SIZE + 2, (GRID_SIZE - 2) * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-    ctx.strokeStyle = 'var(--border)';
+    ctx.strokeStyle = border;
     ctx.strokeRect((GRID_SIZE - 2) * CELL_SIZE + 2, (GRID_SIZE - 2) * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
 
     // Draw Player
-    ctx.fillStyle = 'var(--bg)';
+    ctx.fillStyle = bg;
     ctx.fillRect(playerPosition.c * CELL_SIZE + 2, playerPosition.r * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
     ctx.lineWidth = 2;
-    ctx.strokeStyle = 'var(--border)';
+    ctx.strokeStyle = border;
     ctx.strokeRect(playerPosition.c * CELL_SIZE + 2, playerPosition.r * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
   }, [grid, playerPosition]);
 

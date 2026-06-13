@@ -9,9 +9,14 @@ export type GameId =
   | 'pong'
   | 'breakout'
   | 'tetris'
-  | 'blackjack'
   | 'connectfour'
-  | 'maze';
+  | 'maze'
+  | 'solitaire'
+  | 'hangman'
+  | 'chess'
+  | 'mario'
+  | 'carrom'
+  | 'spaceshooter';
 
 export interface GameMetadata {
   id: GameId;

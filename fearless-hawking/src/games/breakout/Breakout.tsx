@@ -263,8 +263,17 @@ export const Breakout: React.FC<BreakoutProps> = ({ onBack, record, onUpdateReco
     };
 
     const render = () => {
+      if (!canvas) return;
+      const computed = window.getComputedStyle(canvas);
+      const bg = computed.getPropertyValue('--bg').trim() || '#000000';
+      const fg = computed.getPropertyValue('--fg').trim() || '#ffffff';
+      const border = computed.getPropertyValue('--border').trim() || '#ffffff';
+      const grayDark = computed.getPropertyValue('--gray-dark').trim() || '#333333';
+      const grayMid = computed.getPropertyValue('--gray-mid').trim() || '#666666';
+      const grayLight = computed.getPropertyValue('--gray-light').trim() || '#cccccc';
+
       // Draw background
-      ctx.fillStyle = 'var(--bg)';
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
       // Draw Bricks
@@ -273,29 +282,29 @@ export const Breakout: React.FC<BreakoutProps> = ({ onBack, record, onUpdateReco
 
         // Monochrome patterns per row
         ctx.fillStyle = brick.rowType === 0
-          ? 'var(--fg)'
+          ? fg
           : brick.rowType === 1
-            ? 'var(--gray-dark)'
+            ? grayDark
             : brick.rowType === 2
-              ? 'var(--gray-mid)'
-              : 'var(--gray-light)';
+              ? grayMid
+              : grayLight;
 
         ctx.fillRect(brick.x, brick.y, BRICK_WIDTH, BRICK_HEIGHT);
-        ctx.strokeStyle = 'var(--border)';
+        ctx.strokeStyle = border;
         ctx.strokeRect(brick.x, brick.y, BRICK_WIDTH, BRICK_HEIGHT);
       }
 
       // Draw Paddle
-      ctx.fillStyle = 'var(--fg)';
+      ctx.fillStyle = fg;
       ctx.fillRect(paddleX.current, CANVAS_HEIGHT - 25, PADDLE_WIDTH, PADDLE_HEIGHT);
-      ctx.strokeStyle = 'var(--border)';
+      ctx.strokeStyle = border;
       ctx.strokeRect(paddleX.current, CANVAS_HEIGHT - 25, PADDLE_WIDTH, PADDLE_HEIGHT);
 
       // Draw Ball
       if (status === 'playing') {
-        ctx.fillStyle = 'var(--fg)';
+        ctx.fillStyle = fg;
         ctx.fillRect(ballPos.current.x, ballPos.current.y, BALL_SIZE, BALL_SIZE);
-        ctx.strokeStyle = 'var(--border)';
+        ctx.strokeStyle = border;
         ctx.strokeRect(ballPos.current.x, ballPos.current.y, BALL_SIZE, BALL_SIZE);
       }
     };

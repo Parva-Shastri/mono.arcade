@@ -11,9 +11,14 @@ import Wordle, { metadata as wordleMeta } from './games/wordle/Wordle';
 import Pong, { metadata as pongMeta } from './games/pong/Pong';
 import Breakout, { metadata as breakoutMeta } from './games/breakout/Breakout';
 import Tetris, { metadata as tetrisMeta } from './games/tetris/Tetris';
-import Blackjack, { metadata as blackjackMeta } from './games/blackjack/Blackjack';
 import ConnectFour, { metadata as connectfourMeta } from './games/connectfour/ConnectFour';
 import Maze, { metadata as mazeMeta } from './games/maze/Maze';
+import Solitaire, { metadata as solitaireMeta } from './games/solitaire/Solitaire';
+import Hangman, { metadata as hangmanMeta } from './games/hangman/Hangman';
+import Chess, { metadata as chessMeta } from './games/chess/Chess';
+import Mario, { metadata as marioMeta } from './games/mario/Mario';
+import Carrom, { metadata as carromMeta } from './games/carrom/Carrom';
+import SpaceShooter, { metadata as spaceshooterMeta } from './games/spaceshooter/SpaceShooter';
 
 const GAMES: GameMetadata[] = [
   tictactoeMeta,
@@ -26,9 +31,14 @@ const GAMES: GameMetadata[] = [
   pongMeta,
   breakoutMeta,
   tetrisMeta,
-  blackjackMeta,
   connectfourMeta,
   mazeMeta,
+  solitaireMeta,
+  hangmanMeta,
+  chessMeta,
+  marioMeta,
+  carromMeta,
+  spaceshooterMeta,
 ];
 
 const DEFAULT_SCORES: ScoresState = {
@@ -42,10 +52,16 @@ const DEFAULT_SCORES: ScoresState = {
   pong: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
   breakout: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
   tetris: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
-  blackjack: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
   connectfour: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
   maze: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  solitaire: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  hangman: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  chess: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  mario: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  carrom: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  spaceshooter: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
 };
+
 
 export const App: React.FC = () => {
   const [activeGame, setActiveGame] = useState<GameId | null>(null);
@@ -215,13 +231,6 @@ export const App: React.FC = () => {
         />
       )}
 
-      {activeGame === 'blackjack' && (
-        <Blackjack
-          onBack={() => setActiveGame(null)}
-          record={scores.blackjack}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
 
       {activeGame === 'connectfour' && (
         <ConnectFour

@@ -322,18 +322,32 @@ export const Tetris: React.FC<TetrisProps> = ({ onBack, record, onUpdateRecord }
   }, [status, score]);
 
   // Rendering engine
+  const resolveThemeStyles = (canvas: HTMLCanvasElement) => {
+    const computed = window.getComputedStyle(canvas);
+    return {
+      bg: computed.getPropertyValue('--bg').trim() || '#000000',
+      fg: computed.getPropertyValue('--fg').trim() || '#ffffff',
+      border: computed.getPropertyValue('--border').trim() || '#ffffff',
+      grayLight: computed.getPropertyValue('--gray-light').trim() || '#cccccc',
+      grayMid: computed.getPropertyValue('--gray-mid').trim() || '#666666',
+      grayDark: computed.getPropertyValue('--gray-dark').trim() || '#333333',
+    };
+  };
+
   const drawBoard = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const styles = resolveThemeStyles(canvas);
+
     // Clear board
-    ctx.fillStyle = 'var(--bg)';
+    ctx.fillStyle = styles.bg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Draw Grid Lines (brutalist outline style)
-    ctx.strokeStyle = 'var(--gray-light)';
+    ctx.strokeStyle = styles.grayLight;
     ctx.lineWidth = 0.5;
     for (let c = 1; c < COLS; c++) {
       ctx.beginPath();
@@ -353,7 +367,7 @@ export const Tetris: React.FC<TetrisProps> = ({ onBack, record, onUpdateRecord }
       for (let c = 0; c < COLS; c++) {
         const val = grid.current[r][c];
         if (val !== 0) {
-          drawBlock(ctx, c, r, val);
+          drawBlock(ctx, c, r, val, styles);
         }
       }
     }
@@ -365,7 +379,7 @@ export const Tetris: React.FC<TetrisProps> = ({ onBack, record, onUpdateRecord }
       for (let r = 0; r < shape.length; r++) {
         for (let c = 0; c < shape[r].length; c++) {
           if (shape[r][c] !== 0) {
-            drawBlock(ctx, x + c, y + r, colorId);
+            drawBlock(ctx, x + c, y + r, colorId, styles);
           }
         }
       }
@@ -378,7 +392,9 @@ export const Tetris: React.FC<TetrisProps> = ({ onBack, record, onUpdateRecord }
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.fillStyle = 'var(--bg)';
+    const styles = resolveThemeStyles(canvas);
+
+    ctx.fillStyle = styles.bg;
     ctx.fillRect(0, 0, 80, 80);
 
     const type = nextPieceType.current;
@@ -391,9 +407,9 @@ export const Tetris: React.FC<TetrisProps> = ({ onBack, record, onUpdateRecord }
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (shape[r][c] !== 0) {
-          ctx.fillStyle = getBlockPattern(colorId);
+          ctx.fillStyle = getBlockPattern(colorId, styles);
           ctx.fillRect(offsetX + c * BLOCK_SIZE, offsetY + r * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-          ctx.strokeStyle = 'var(--border)';
+          ctx.strokeStyle = styles.border;
           ctx.lineWidth = 1.5;
           ctx.strokeRect(offsetX + c * BLOCK_SIZE, offsetY + r * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
         }
@@ -401,26 +417,26 @@ export const Tetris: React.FC<TetrisProps> = ({ onBack, record, onUpdateRecord }
     }
   };
 
-  const drawBlock = (ctx: CanvasRenderingContext2D, x: number, y: number, colorId: number) => {
-    ctx.fillStyle = getBlockPattern(colorId);
+  const drawBlock = (ctx: CanvasRenderingContext2D, x: number, y: number, colorId: number, styles: ReturnType<typeof resolveThemeStyles>) => {
+    ctx.fillStyle = getBlockPattern(colorId, styles);
     ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-    ctx.strokeStyle = 'var(--border)';
+    ctx.strokeStyle = styles.border;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
   };
 
-  const getBlockPattern = (id: number): string => {
+  const getBlockPattern = (id: number, styles: ReturnType<typeof resolveThemeStyles>): string => {
     const patterns = [
-      'var(--bg)', // empty
-      'var(--fg)', // 1
-      'var(--gray-dark)', // 2
-      'var(--gray-mid)', // 3
-      'var(--gray-light)', // 4
+      styles.bg, // empty
+      styles.fg, // 1
+      styles.grayDark, // 2
+      styles.grayMid, // 3
+      styles.grayLight, // 4
       '#777777', // 5
       '#444444', // 6
       '#aaaaaa', // 7
     ];
-    return patterns[id] || 'var(--fg)';
+    return patterns[id] || styles.fg;
   };
 
   // Render board on mount or state change

@@ -248,12 +248,18 @@ export const Pong: React.FC<PongProps> = ({ onBack, record, onUpdateRecord }) =>
     };
 
     const render = () => {
+      if (!canvas) return;
+      const computed = window.getComputedStyle(canvas);
+      const bg = computed.getPropertyValue('--bg').trim() || '#000000';
+      const fg = computed.getPropertyValue('--fg').trim() || '#ffffff';
+      const border = computed.getPropertyValue('--border').trim() || '#ffffff';
+
       // Draw background
-      ctx.fillStyle = 'var(--bg)';
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
       // Draw dashed center line
-      ctx.strokeStyle = 'var(--border)';
+      ctx.strokeStyle = border;
       ctx.lineWidth = 2;
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -263,9 +269,9 @@ export const Pong: React.FC<PongProps> = ({ onBack, record, onUpdateRecord }) =>
       ctx.setLineDash([]); // Reset line dash
 
       // Draw Player Paddle
-      ctx.fillStyle = 'var(--fg)';
+      ctx.fillStyle = fg;
       ctx.fillRect(PLAYER_X, playerY.current, PADDLE_WIDTH, PADDLE_HEIGHT);
-      ctx.strokeStyle = 'var(--border)';
+      ctx.strokeStyle = border;
       ctx.strokeRect(PLAYER_X, playerY.current, PADDLE_WIDTH, PADDLE_HEIGHT);
 
       // Draw AI Paddle

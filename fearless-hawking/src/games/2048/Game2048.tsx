@@ -266,7 +266,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onBack, record, onUpdateReco
   };
 
   const getTileStyle = (val: number): React.CSSProperties => {
-    if (val === 0) return {};
+    if (val === 0) return { background: 'var(--bg)', border: 'none' };
     const baseStyle: React.CSSProperties = {
       display: 'flex',
       alignItems: 'center',

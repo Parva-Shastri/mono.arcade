@@ -242,6 +242,7 @@ export const Memory: React.FC<MemoryProps> = ({ onBack, record, onUpdateRecord }
                   backgroundColor: 'var(--fg)',
                   color: 'var(--bg)',
                   background: 'repeating-linear-gradient(45deg, var(--fg), var(--fg) 4px, var(--gray-mid) 4px, var(--gray-mid) 8px)',
+                  border: '2px solid transparent',
                   boxShadow: 'inset 2px 2px 0px rgba(255,255,255,0.4)',
                 };
               }
