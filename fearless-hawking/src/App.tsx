@@ -1,45 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import type { GameId, GameMetadata, ScoresState } from './types';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
+import type { GameId, ScoresState } from './types';
 import Dashboard from './components/Dashboard';
-import TicTacToe, { metadata as tictactoeMeta } from './games/tictactoe/TicTacToe';
-import Snake, { metadata as snakeMeta } from './games/snake/Snake';
-import Game2048, { metadata as game2048Meta } from './games/2048/Game2048';
-import Minesweeper, { metadata as minesweeperMeta } from './games/minesweeper/Minesweeper';
-import Memory, { metadata as memoryMeta } from './games/memory/Memory';
-import Sudoku, { metadata as sudokuMeta } from './games/sudoku/Sudoku';
-import Wordle, { metadata as wordleMeta } from './games/wordle/Wordle';
-import Pong, { metadata as pongMeta } from './games/pong/Pong';
-import Breakout, { metadata as breakoutMeta } from './games/breakout/Breakout';
-import Tetris, { metadata as tetrisMeta } from './games/tetris/Tetris';
-import ConnectFour, { metadata as connectfourMeta } from './games/connectfour/ConnectFour';
-import Maze, { metadata as mazeMeta } from './games/maze/Maze';
-import Solitaire, { metadata as solitaireMeta } from './games/solitaire/Solitaire';
-import Hangman, { metadata as hangmanMeta } from './games/hangman/Hangman';
-import Chess, { metadata as chessMeta } from './games/chess/Chess';
-import Mario, { metadata as marioMeta } from './games/mario/Mario';
-import Carrom, { metadata as carromMeta } from './games/carrom/Carrom';
-import SpaceShooter, { metadata as spaceshooterMeta } from './games/spaceshooter/SpaceShooter';
+import { GAME_METADATA, GAME_ORDER } from './gameRegistry';
 
-const GAMES: GameMetadata[] = [
-  tictactoeMeta,
-  snakeMeta,
-  game2048Meta,
-  minesweeperMeta,
-  memoryMeta,
-  sudokuMeta,
-  wordleMeta,
-  pongMeta,
-  breakoutMeta,
-  tetrisMeta,
-  connectfourMeta,
-  mazeMeta,
-  solitaireMeta,
-  hangmanMeta,
-  chessMeta,
-  marioMeta,
-  carromMeta,
-  spaceshooterMeta,
-];
+const GAME_COMPONENTS = {
+  tictactoe: lazy(() => import('./games/tictactoe/TicTacToe')),
+  snake: lazy(() => import('./games/snake/Snake')),
+  '2048': lazy(() => import('./games/2048/Game2048')),
+  minesweeper: lazy(() => import('./games/minesweeper/Minesweeper')),
+  memory: lazy(() => import('./games/memory/Memory')),
+  sudoku: lazy(() => import('./games/sudoku/Sudoku')),
+  wordle: lazy(() => import('./games/wordle/Wordle')),
+  pong: lazy(() => import('./games/pong/Pong')),
+  breakout: lazy(() => import('./games/breakout/Breakout')),
+  tetris: lazy(() => import('./games/tetris/Tetris')),
+  connectfour: lazy(() => import('./games/connectfour/ConnectFour')),
+  maze: lazy(() => import('./games/maze/Maze')),
+  solitaire: lazy(() => import('./games/solitaire/Solitaire')),
+  hangman: lazy(() => import('./games/hangman/Hangman')),
+  chess: lazy(() => import('./games/chess/Chess')),
+  mario: lazy(() => import('./games/mario/Mario')),
+  carrom: lazy(() => import('./games/carrom/Carrom')),
+  spaceshooter: lazy(() => import('./games/spaceshooter/SpaceShooter')),
+} as const;
+
+const GAME_LOADERS = {
+  tictactoe: () => import('./games/tictactoe/TicTacToe'),
+  snake: () => import('./games/snake/Snake'),
+  '2048': () => import('./games/2048/Game2048'),
+  minesweeper: () => import('./games/minesweeper/Minesweeper'),
+  memory: () => import('./games/memory/Memory'),
+  sudoku: () => import('./games/sudoku/Sudoku'),
+  wordle: () => import('./games/wordle/Wordle'),
+  pong: () => import('./games/pong/Pong'),
+  breakout: () => import('./games/breakout/Breakout'),
+  tetris: () => import('./games/tetris/Tetris'),
+  connectfour: () => import('./games/connectfour/ConnectFour'),
+  maze: () => import('./games/maze/Maze'),
+  solitaire: () => import('./games/solitaire/Solitaire'),
+  hangman: () => import('./games/hangman/Hangman'),
+  chess: () => import('./games/chess/Chess'),
+  mario: () => import('./games/mario/Mario'),
+  carrom: () => import('./games/carrom/Carrom'),
+  spaceshooter: () => import('./games/spaceshooter/SpaceShooter'),
+} as const;
 
 const DEFAULT_SCORES: ScoresState = {
   tictactoe: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
@@ -119,6 +123,15 @@ export const App: React.FC = () => {
     setCrtEnabled((c) => !c);
   };
 
+  const handleSelectGame = async (id: GameId) => {
+    try {
+      await GAME_LOADERS[id]();
+      setActiveGame(id);
+    } catch (error) {
+      console.error(`Failed to load game module for ${id}:`, error);
+    }
+  };
+
   return (
     <div
       className="app-viewport"
@@ -140,9 +153,9 @@ export const App: React.FC = () => {
 
       {activeGame === null && (
         <Dashboard
-          games={GAMES}
+          games={GAME_ORDER.map((id) => GAME_METADATA[id])}
           scores={scores}
-          onSelectGame={setActiveGame}
+          onSelectGame={handleSelectGame}
           onResetAllScores={handleResetAllScores}
           isDark={theme === 'dark'}
           onToggleTheme={toggleTheme}
@@ -151,150 +164,21 @@ export const App: React.FC = () => {
         />
       )}
 
-      {activeGame === 'tictactoe' && (
-        <TicTacToe
-          onBack={() => setActiveGame(null)}
-          record={scores.tictactoe}
-          onUpdateRecord={handleUpdateRecord}
-        />
+      {activeGame !== null && (
+        <Suspense fallback={null}>
+          {(() => {
+            const GameComponent = GAME_COMPONENTS[activeGame];
+            return (
+              <GameComponent
+                onBack={() => setActiveGame(null)}
+                record={scores[activeGame]}
+                onUpdateRecord={handleUpdateRecord}
+              />
+            );
+          })()}
+        </Suspense>
       )}
 
-      {activeGame === 'snake' && (
-        <Snake
-          onBack={() => setActiveGame(null)}
-          record={scores.snake}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === '2048' && (
-        <Game2048
-          onBack={() => setActiveGame(null)}
-          record={scores['2048']}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'minesweeper' && (
-        <Minesweeper
-          onBack={() => setActiveGame(null)}
-          record={scores.minesweeper}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'memory' && (
-        <Memory
-          onBack={() => setActiveGame(null)}
-          record={scores.memory}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'sudoku' && (
-        <Sudoku
-          onBack={() => setActiveGame(null)}
-          record={scores.sudoku}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'wordle' && (
-        <Wordle
-          onBack={() => setActiveGame(null)}
-          record={scores.wordle}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'pong' && (
-        <Pong
-          onBack={() => setActiveGame(null)}
-          record={scores.pong}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'breakout' && (
-        <Breakout
-          onBack={() => setActiveGame(null)}
-          record={scores.breakout}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'tetris' && (
-        <Tetris
-          onBack={() => setActiveGame(null)}
-          record={scores.tetris}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-
-      {activeGame === 'connectfour' && (
-        <ConnectFour
-          onBack={() => setActiveGame(null)}
-          record={scores.connectfour}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'maze' && (
-        <Maze
-          onBack={() => setActiveGame(null)}
-          record={scores.maze}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'solitaire' && (
-        <Solitaire
-          onBack={() => setActiveGame(null)}
-          record={scores.solitaire}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'hangman' && (
-        <Hangman
-          onBack={() => setActiveGame(null)}
-          record={scores.hangman}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'chess' && (
-        <Chess
-          onBack={() => setActiveGame(null)}
-          record={scores.chess}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'mario' && (
-        <Mario
-          onBack={() => setActiveGame(null)}
-          record={scores.mario}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'carrom' && (
-        <Carrom
-          onBack={() => setActiveGame(null)}
-          record={scores.carrom}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
-
-      {activeGame === 'spaceshooter' && (
-        <SpaceShooter
-          onBack={() => setActiveGame(null)}
-          record={scores.spaceshooter}
-          onUpdateRecord={handleUpdateRecord}
-        />
-      )}
     </div>
   );
 };

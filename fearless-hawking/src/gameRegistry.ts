@@ -1,0 +1,218 @@
+import type { GameId, GameMetadata } from './types';
+
+export const GAME_ORDER: GameId[] = [
+  'tictactoe',
+  'snake',
+  '2048',
+  'minesweeper',
+  'memory',
+  'sudoku',
+  'wordle',
+  'pong',
+  'breakout',
+  'tetris',
+  'connectfour',
+  'maze',
+  'solitaire',
+  'hangman',
+  'chess',
+  'mario',
+  'carrom',
+  'spaceshooter',
+];
+
+export const GAME_METADATA: Record<GameId, GameMetadata> = {
+  tictactoe: {
+    id: 'tictactoe',
+    title: 'Tic-Tac-Toe',
+    description: 'A monochrome duel of circles and crosses. Play against a smart AI or challenge a friend locally.',
+    instructions: [
+      'Choose play mode: VS AI or Pass & Play.',
+      'Select difficulty (Easy, Medium, or Impossible) if playing against the AI.',
+      'Click on an empty square on the grid to place your mark (X).',
+      'Get three of your marks in a horizontal, vertical, or diagonal row to win.',
+      'If the board is filled without any player getting three in a row, it is a draw.',
+    ],
+  },
+  snake: {
+    id: 'snake',
+    title: 'Snake',
+    description: 'Navigate the grid, devour blocks, and avoid your own trail. Styled with sleek geometric outlines.',
+    instructions: [
+      "Use WASD, Arrow Keys, or the on-screen D-pad to change the snake's direction.",
+      'Eat the flashing food blocks to grow and increase your score.',
+      'Avoid colliding with your own tail and the walls (unless Wrap is ON).',
+      'Set speed (Slow, Normal, Fast) to customize the challenge level.',
+    ],
+  },
+  '2048': {
+    id: '2048',
+    title: '2048',
+    description: 'Slide tiles to merge matching patterns and reach the 2048 block. Reimagined with striking monochrome textures.',
+    instructions: [
+      'Use Arrow Keys, WASD, or swipe on screen to slide all tiles in a direction.',
+      'When two tiles with the same number touch, they merge into one with double value.',
+      'A new tile (2 or 4) spawns in a random empty space after every valid move.',
+      'Reach the 2048 tile to win, or continue playing to set a high score!',
+    ],
+  },
+  minesweeper: {
+    id: 'minesweeper',
+    title: 'Minesweeper',
+    description: 'Avoid the hidden mines in this classic logic puzzle.',
+    instructions: [
+      'Left-click tiles to reveal them.',
+      'Right-click tiles to toggle flags on suspected mines.',
+      'Numbers show how many mines are adjacent.',
+      'Reveal all safe cells to win.',
+    ],
+  },
+  memory: {
+    id: 'memory',
+    title: 'Memory Match',
+    description: 'Test your memory recall by matching pairs of symbols.',
+    instructions: [
+      'Flip cards to reveal their symbols.',
+      'Find pairs of identical cards.',
+      'Complete the board in as few moves as possible.',
+    ],
+  },
+  sudoku: {
+    id: 'sudoku',
+    title: 'Sudoku',
+    description: 'Fill the 9x9 grid so that each row, column, and 3x3 section contains numbers 1-9.',
+    instructions: [
+      'Select a cell on the grid (use mouse or keyboard arrow keys).',
+      'Click a number key (1-9) below or type it on your keyboard.',
+      'Clear a cell with the ERASE button, Backspace, or 0.',
+      'Careful! 3 incorrect entries will trigger game over.',
+    ],
+  },
+  wordle: {
+    id: 'wordle',
+    title: 'Wordle Clone',
+    description: 'Guess the hidden five-letter word in six attempts.',
+    instructions: [
+      'Type a five-letter word and submit.',
+      'Green letters are correct and in the right spot.',
+      'Yellow letters are correct but in the wrong spot.',
+      'Gray letters are not in the word.',
+    ],
+  },
+  pong: {
+    id: 'pong',
+    title: 'Pong',
+    description: 'Control your paddle and bounce the ball past the opponent.',
+    instructions: [
+      'Use up/down arrow keys or mouse to move your paddle.',
+      'Bounce the ball off your paddle to keep it in play.',
+      'Score a point when the ball goes past the opponent.',
+    ],
+  },
+  breakout: {
+    id: 'breakout',
+    title: 'Breakout',
+    description: 'Destroy all the bricks on the screen using a paddle and a bouncing ball.',
+    instructions: [
+      'Move the paddle left and right.',
+      'Keep the ball from falling off the bottom of the screen.',
+      'Destroy all the colored bricks to win.',
+    ],
+  },
+  tetris: {
+    id: 'tetris',
+    title: 'Tetris',
+    description: 'Rotate and fit falling blocks to clear lines.',
+    instructions: [
+      'Use arrow keys to move and rotate the falling blocks.',
+      'Form complete horizontal lines to clear them and score points.',
+      'Do not let the blocks reach the top of the grid.',
+    ],
+  },
+  connectfour: {
+    id: 'connectfour',
+    title: 'Connect Four',
+    description: 'Drop checkers to connect four in a row horizontally, vertically, or diagonally.',
+    instructions: [
+      'Choose Play Mode: VS AI or Pass & Play.',
+      'Click on any column to drop your checker to the bottom-most available cell.',
+      'Connect four of your checkers in a line (horizontal, vertical, or diagonal) to win.',
+    ],
+  },
+  maze: {
+    id: 'maze',
+    title: 'Maze',
+    description: 'Navigate through a grid to find the exit.',
+    instructions: [
+      'Use arrow keys to move your character.',
+      'Avoid walls and obstacles.',
+      'Reach the destination point to solve the maze.',
+    ],
+  },
+  solitaire: {
+    id: 'solitaire',
+    title: 'Solitaire',
+    description: 'Classic Klondike Solitaire. Build foundations from Ace to King.',
+    instructions: [
+      'Draw cards from the deck to the waste pile.',
+      'Build foundations (top right) in ascending order by suit (A to K).',
+      'Build tableau piles (bottom) in descending order with alternating color patterns.',
+      'Move cards or stacks between tableau piles.',
+    ],
+  },
+  hangman: {
+    id: 'hangman',
+    title: 'Hangman',
+    description: 'Guess the hidden retro word letter by letter before the gallows is complete.',
+    instructions: [
+      'Choose letters from the on-screen keyboard to guess the secret word.',
+      'Each incorrect guess adds another part to the gallows drawing.',
+      'Guess the entire word correctly to win.',
+      'You have 6 incorrect guesses allowed before the game is lost.',
+    ],
+  },
+  chess: {
+    id: 'chess',
+    title: 'Chess',
+    description: "Retro 2-player local chess match. Capture the opponent's King to win.",
+    instructions: [
+      'Select a piece on your turn by clicking it.',
+      'Click a valid destination cell to move or capture.',
+      'Play alternates between White and Black players.',
+      "Capture the opponent's King to secure victory.",
+    ],
+  },
+  mario: {
+    id: 'mario',
+    title: 'Mario (Mini)',
+    description: 'Side-scrolling obstacle jump game. Jump over pipes and survive to score.',
+    instructions: [
+      'Press Spacebar, Up Arrow, or click the canvas to jump.',
+      'Avoid incoming pipe obstacles.',
+      'Score increments the longer you survive.',
+      'Reach 100 points to win the level.',
+    ],
+  },
+  carrom: {
+    id: 'carrom',
+    title: 'Carrom',
+    description: 'Flick the striker to pocket the center disk in the corner pockets.',
+    instructions: [
+      'Position the striker on the baseline (drag left/right).',
+      'Drag back from the striker to aim and set power, then release to shoot.',
+      'Pocket the center queen disk in any of the 4 corner pockets.',
+      'Flick and score points. Get 50 points to win the match.',
+    ],
+  },
+  spaceshooter: {
+    id: 'spaceshooter',
+    title: 'Space Shooter',
+    description: 'Shoot incoming asteroids to protect your ship and score points.',
+    instructions: [
+      'Use Left/Right arrow keys or move mouse to navigate your ship.',
+      'Press Spacebar or click canvas to shoot lasers.',
+      'Avoid colliding with incoming asteroids.',
+      'Destroy asteroids to score. Reach 100 points to win.',
+    ],
+  },
+};
