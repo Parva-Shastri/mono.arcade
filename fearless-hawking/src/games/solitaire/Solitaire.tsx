@@ -304,23 +304,28 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '2px dashed var(--border)',
-                  background: selectedCard?.source === 'waste' ? 'var(--gray-light)' : 'var(--bg)',
+                  border: waste.length > 0 ? '2px solid var(--border)' : '2px dashed var(--border)',
+                  background: waste.length > 0
+                    ? selectedCard?.source === 'waste'
+                      ? 'var(--gray-mid)'
+                      : waste[waste.length - 1].isRed
+                        ? 'var(--fg)'
+                        : 'var(--bg)'
+                    : 'var(--bg)',
                   position: 'relative',
                 }}
               >
                 {waste.length > 0 && (
                   <div
                     style={{
-                      width: '100%',
-                      height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1rem',
+                      fontSize: '0.85rem',
                       fontWeight: 'bold',
-                      color: waste[waste.length - 1].isRed ? 'var(--gray-dark)' : 'var(--fg)',
+                      color: waste[waste.length - 1].isRed
+                        ? selectedCard?.source === 'waste' ? 'var(--fg)' : 'var(--bg)'
+                        : 'var(--fg)',
                     }}
                   >
                     <span>{getCardName(waste[waste.length - 1].value)}</span>
@@ -332,39 +337,51 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
 
             {/* Foundations */}
             <div style={{ display: 'flex', gap: '8px' }}>
-              {foundations.map((foundCol, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleCardClick('foundation', i)}
-                  className="brutalist-card"
-                  style={{
-                    width: '50px',
-                    height: '75px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid var(--border)',
-                    background: 'var(--bg)',
-                  }}
-                >
-                  {foundCol.length > 0 ? (
-                    <div
-                      style={{
-                        fontSize: '1rem',
-                        fontWeight: 'bold',
-                        color: foundCol[foundCol.length - 1].isRed ? 'var(--gray-dark)' : 'var(--fg)',
-                      }}
-                    >
-                      <div>{getCardName(foundCol[foundCol.length - 1].value)}</div>
-                      <div>{foundCol[foundCol.length - 1].suit}</div>
-                    </div>
-                  ) : (
-                    <span style={{ opacity: 0.3, fontSize: '1.2rem' }}>[ {SUITS[i]} ]</span>
-                  )}
-                </div>
-              ))}
+              {foundations.map((foundCol, i) => {
+                const hasCards = foundCol.length > 0;
+                const topCard = hasCards ? foundCol[foundCol.length - 1] : null;
+                const isRed = topCard?.isRed || false;
+                return (
+                  <div
+                    key={i}
+                    onClick={() => handleCardClick('foundation', i)}
+                    className="brutalist-card"
+                    style={{
+                      width: '50px',
+                      height: '75px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid var(--border)',
+                      background: hasCards
+                        ? isRed
+                          ? 'var(--fg)'
+                          : 'var(--bg)'
+                        : 'var(--bg)',
+                    }}
+                  >
+                    {hasCards ? (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          fontSize: '0.85rem',
+                          fontWeight: 'bold',
+                          color: isRed ? 'var(--bg)' : 'var(--fg)',
+                        }}
+                      >
+                        <span>{getCardName(topCard!.value)}</span>
+                        <span>{topCard!.suit}</span>
+                      </div>
+                    ) : (
+                      <span style={{ opacity: 0.3, fontSize: '1.2rem' }}>[ {SUITS[i]} ]</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -406,22 +423,31 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
                         background: card.faceUp
                           ? isSelected
                             ? 'var(--gray-mid)'
-                            : 'var(--bg)'
+                            : card.isRed
+                              ? 'var(--fg)'
+                              : 'var(--bg)'
                           : 'repeating-linear-gradient(45deg, var(--fg), var(--fg) 2px, var(--gray-light) 2px, var(--gray-light) 4px)',
                         cursor: 'pointer',
                         boxShadow: 'none',
                         zIndex: idx + 1,
+                        position: 'relative',
                       }}
                     >
                       {card.faceUp && (
                         <div
                           style={{
+                            position: 'absolute',
+                            top: '4px',
+                            left: '4px',
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: 'center',
-                            fontSize: '0.8rem',
+                            alignItems: 'flex-start',
+                            fontSize: '0.75rem',
                             fontWeight: 'bold',
-                            color: card.isRed ? 'var(--gray-dark)' : 'var(--fg)',
+                            color: card.isRed
+                              ? isSelected ? 'var(--fg)' : 'var(--bg)'
+                              : 'var(--fg)',
+                            lineHeight: '1',
                           }}
                         >
                           <span>{getCardName(card.value)}</span>
