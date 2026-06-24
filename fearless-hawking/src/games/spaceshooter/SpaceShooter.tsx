@@ -95,7 +95,7 @@ export const SpaceShooter: React.FC<SpaceShooterProps> = ({ onBack, record, onUp
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [status]);
 
   useEffect(() => {

@@ -170,7 +170,7 @@ export const Snake: React.FC<SnakeProps> = ({ onBack, record, onUpdateRecord }) 
         const curDirection = nextDirection.current;
         setDirection(curDirection);
 
-        let newHead = { ...head };
+        const newHead = { ...head };
         switch (curDirection) {
           case 'UP': newHead.y -= 1; break;
           case 'DOWN': newHead.y += 1; break;
