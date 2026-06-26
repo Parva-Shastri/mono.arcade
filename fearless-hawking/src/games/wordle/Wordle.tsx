@@ -171,7 +171,7 @@ export const Wordle: React.FC<WordleProps> = ({ onBack, record, onUpdateRecord }
       const targetLetters = targetWord.split('');
       const guessLetters = guess.split('');
       
-      let targetCount = targetLetters.filter(c => c === char).length;
+      const targetCount = targetLetters.filter(c => c === char).length;
       let correctCount = 0;
       for (let i = 0; i < 5; i++) {
         if (guessLetters[i] === char && targetLetters[i] === char) {

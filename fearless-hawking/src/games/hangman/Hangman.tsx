@@ -39,7 +39,7 @@ export const Hangman: React.FC<HangmanProps> = ({ onBack, record, onUpdateRecord
 
   useEffect(() => {
     startNewGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const getIncorrectGuesses = () => {

@@ -259,7 +259,7 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
 
   useEffect(() => {
     startNewGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   useEffect(() => {
@@ -350,7 +350,7 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
         if (source === 'tableau' && col !== undefined) {
           const destCol = tableau[col];
           const destTopCard = destCol[destCol.length - 1];
-          let valid = false;
+          let valid;
 
           if (!destTopCard) {
             valid = cardToMove.value === 13; // King only
@@ -365,7 +365,7 @@ export const Solitaire: React.FC<SolitaireProps> = ({ onBack, record, onUpdateRe
         } else if (source === 'foundation' && col !== undefined && movingStack.length <= 1) {
           const destFound = foundations[col];
           const destTopCard = destFound[destFound.length - 1];
-          let valid = false;
+          let valid;
 
           if (!destTopCard) {
             valid = cardToMove.value === 1; // Ace only

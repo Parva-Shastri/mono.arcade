@@ -68,7 +68,7 @@ export const Chess: React.FC<ChessProps> = ({ onBack, record, onUpdateRecord }) 
 
   useEffect(() => {
     startNewGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const handleCellClick = (r: number, c: number) => {

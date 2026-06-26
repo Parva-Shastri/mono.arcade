@@ -115,7 +115,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onBack, record, onUpdateReco
     let earnedPoints = 0;
 
     const mergeLine = (line: number[]) => {
-      let nonZero = line.filter((val) => val !== 0);
+      const nonZero = line.filter((val) => val !== 0);
       for (let i = 0; i < nonZero.length - 1; i++) {
         if (nonZero[i] === nonZero[i + 1]) {
           nonZero[i] *= 2;
@@ -124,7 +124,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onBack, record, onUpdateReco
           mergedAny = true;
         }
       }
-      let result = nonZero.filter((val) => val !== 0);
+      const result = nonZero.filter((val) => val !== 0);
       while (result.length < 4) {
         result.push(0);
       }
