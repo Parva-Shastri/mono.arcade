@@ -16,7 +16,10 @@ export type GameId =
   | 'chess'
   | 'mario'
   | 'carrom'
-  | 'spaceshooter';
+  | 'spaceshooter'
+  | 'slingshot'
+  | 'puzzle'
+  | 'carracing';
 
 export interface GameMetadata {
   id: GameId;

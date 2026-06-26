@@ -22,6 +22,9 @@ const GAME_COMPONENTS = {
   mario: lazy(() => import('./games/mario/Mario')),
   carrom: lazy(() => import('./games/carrom/Carrom')),
   spaceshooter: lazy(() => import('./games/spaceshooter/SpaceShooter')),
+  slingshot: lazy(() => import('./games/slingshot/SlingShot')),
+  puzzle: lazy(() => import('./games/puzzle/Puzzle')),
+  carracing: lazy(() => import('./games/carracing/CarRacing')),
 } as const;
 
 const GAME_LOADERS = {
@@ -43,6 +46,9 @@ const GAME_LOADERS = {
   mario: () => import('./games/mario/Mario'),
   carrom: () => import('./games/carrom/Carrom'),
   spaceshooter: () => import('./games/spaceshooter/SpaceShooter'),
+  slingshot: () => import('./games/slingshot/SlingShot'),
+  puzzle: () => import('./games/puzzle/Puzzle'),
+  carracing: () => import('./games/carracing/CarRacing'),
 } as const;
 
 const DEFAULT_SCORES: ScoresState = {
@@ -64,6 +70,9 @@ const DEFAULT_SCORES: ScoresState = {
   mario: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
   carrom: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
   spaceshooter: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  slingshot: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  puzzle: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
+  carracing: { highScore: 0, gamesPlayed: 0, gamesWon: 0 },
 };
 
 

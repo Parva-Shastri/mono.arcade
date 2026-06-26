@@ -19,6 +19,9 @@ export const GAME_ORDER: GameId[] = [
   'mario',
   'carrom',
   'spaceshooter',
+  'slingshot',
+  'puzzle',
+  'carracing',
 ];
 
 export const GAME_METADATA: Record<GameId, GameMetadata> = {
@@ -213,6 +216,36 @@ export const GAME_METADATA: Record<GameId, GameMetadata> = {
       'Press Spacebar or click canvas to shoot lasers.',
       'Avoid colliding with incoming asteroids.',
       'Destroy asteroids to score. Reach 100 points to win.',
+    ],
+  },
+  slingshot: {
+    id: 'slingshot',
+    title: 'SlingShot',
+    description: 'Aim, pull back, and launch projectiles to destroy targets in this retro physics-based game.',
+    instructions: [
+      'Drag back on the projectile to aim and set launch power.',
+      'Release to launch the projectile at the targets.',
+      'Clear all targets within the limit to win!',
+    ],
+  },
+  puzzle: {
+    id: 'puzzle',
+    title: 'Puzzle',
+    description: 'Solve the sliding tile puzzle to reveal the hidden picture.',
+    instructions: [
+      'Click or tap on tiles adjacent to the empty slot to slide them.',
+      'Arrange all the tiles in correct sequential order.',
+      'Complete the puzzle to win!',
+    ],
+  },
+  carracing: {
+    id: 'carracing',
+    title: 'Car Racing',
+    description: 'Dodge traffic and speed through checkpoints to reach the finish line.',
+    instructions: [
+      'Use the Left and Right arrow keys (or A and D) to steer your car.',
+      'Avoid colliding with other cars on the road.',
+      'Pass checkpoints to extend your time and finish the race!',
     ],
   },
 };
