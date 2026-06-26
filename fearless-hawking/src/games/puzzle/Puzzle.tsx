@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GameWrapper from '../../components/GameWrapper';
 import type { GameMetadata, ScoreRecord, GameId } from '../../types';
 import audio from '../../utils/audio';
@@ -6,12 +6,13 @@ import confetti from 'canvas-confetti';
 
 export const metadata: GameMetadata = {
   id: 'puzzle',
-  title: 'Puzzle',
-  description: 'Solve the sliding tile puzzle to reveal the hidden picture.',
+  title: 'Photo Puzzle',
+  description: 'Rearrange tiles to restore a stunning photo. Choose your category and difficulty.',
   instructions: [
-    'Click or tap on tiles adjacent to the empty slot to slide them.',
-    'Arrange all the tiles in correct sequential order.',
-    'Complete the puzzle to win!',
+    'Select a category and difficulty, then press Start Puzzle.',
+    'Click tiles adjacent to the empty slot to slide them into place.',
+    'Press Preview to briefly see the complete image.',
+    'Restore the full image in the fewest moves to get a high score!',
   ],
 };
 
@@ -21,214 +22,485 @@ interface PuzzleProps {
   onUpdateRecord: (id: GameId, record: ScoreRecord) => void;
 }
 
-const SOLVED_BOARD = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+const CATEGORIES: { name: string; images: string[] }[] = [
+  {
+    name: 'Nature',
+    images: [
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=600&h=600&fit=crop',
+    ],
+  },
+  {
+    name: 'Wildlife',
+    images: [
+      'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1564349683136-77e08dba1ef3?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=600&h=600&fit=crop',
+    ],
+  },
+  {
+    name: 'Cityscapes',
+    images: [
+      'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=600&h=600&fit=crop',
+    ],
+  },
+  {
+    name: 'Architecture',
+    images: [
+      'https://images.unsplash.com/photo-1431576901776-e539bd916ba2?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?w=600&h=600&fit=crop',
+    ],
+  },
+  {
+    name: 'Space',
+    images: [
+      'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=600&h=600&fit=crop',
+    ],
+  },
+];
 
-// Generate a solvable board outside of the component to keep the component pure
-function generateShuffledBoard(): number[] {
-  const currentBoard = [...SOLVED_BOARD];
-  let emptyIdx = 8;
+const DIFFICULTIES = [
+  { label: 'Easy', grid: 4 },
+  { label: 'Mid', grid: 6 },
+  { label: 'Hard', grid: 8 },
+  { label: 'Extreme', grid: 10 },
+];
 
-  for (let step = 0; step < 40; step++) {
-    const row = Math.floor(emptyIdx / 3);
-    const col = emptyIdx % 3;
-    const validIndices: number[] = [];
+const PUZZLE_SIZE = 480;
 
-    if (row > 0) validIndices.push(emptyIdx - 3);
-    if (row < 2) validIndices.push(emptyIdx + 3);
-    if (col > 0) validIndices.push(emptyIdx - 1);
-    if (col < 2) validIndices.push(emptyIdx + 1);
+/** Generate a solvable shuffle by doing 300 random valid moves from solved state */
+function generateShuffledTiles(n: number): number[] {
+  const total = n * n;
+  const tiles = Array.from({ length: total }, (_, i) => i); // 0 = empty
+  let emptyIdx = 0; // empty tile starts at position 0 (top-left)
 
-    const randomTarget = validIndices[Math.floor(Math.random() * validIndices.length)];
-    // Swap
-    const temp = currentBoard[emptyIdx];
-    currentBoard[emptyIdx] = currentBoard[randomTarget];
-    currentBoard[randomTarget] = temp;
-    emptyIdx = randomTarget;
+  for (let step = 0; step < 300; step++) {
+    const row = Math.floor(emptyIdx / n);
+    const col = emptyIdx % n;
+    const neighbors: number[] = [];
+
+    if (row > 0) neighbors.push(emptyIdx - n);
+    if (row < n - 1) neighbors.push(emptyIdx + n);
+    if (col > 0) neighbors.push(emptyIdx - 1);
+    if (col < n - 1) neighbors.push(emptyIdx + 1);
+
+    const swapIdx = neighbors[Math.floor(Math.random() * neighbors.length)];
+    const temp = tiles[emptyIdx];
+    tiles[emptyIdx] = tiles[swapIdx];
+    tiles[swapIdx] = temp;
+    emptyIdx = swapIdx;
   }
 
-  // In case shuffling accidentally lands on solved, shuffle again
-  let isSolved = true;
-  for (let i = 0; i < 9; i++) {
-    if (currentBoard[i] !== SOLVED_BOARD[i]) {
-      isSolved = false;
-      break;
-    }
-  }
-  if (isSolved) {
-    return generateShuffledBoard();
-  }
+  return tiles;
+}
 
-  return currentBoard;
+function isSolved(tiles: number[]): boolean {
+  for (let i = 0; i < tiles.length; i++) {
+    if (tiles[i] !== i) return false;
+  }
+  return true;
+}
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 export const Puzzle: React.FC<PuzzleProps> = ({ onBack, record, onUpdateRecord }) => {
-  const [board, setBoard] = useState<number[]>(SOLVED_BOARD);
-  const [moves, setMoves] = useState(0);
-  const [status, setStatus] = useState<'playing' | 'won' | 'lost'>('playing');
+  // Setup state
+  const [screen, setScreen] = useState<'setup' | 'playing' | 'won'>('setup');
+  const [categoryIdx, setCategoryIdx] = useState(0);
+  const [difficultyIdx, setDifficultyIdx] = useState(0);
+  const [imageUrl, setImageUrl] = useState<string>('');
 
-  const shuffleBoard = () => {
-    setBoard(generateShuffledBoard());
+  // Game state
+  const [tiles, setTiles] = useState<number[]>([]);
+  const [moves, setMoves] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
+  const [finalTime, setFinalTime] = useState(0);
+  const [finalMoves, setFinalMoves] = useState(0);
+
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const n = DIFFICULTIES[difficultyIdx].grid;
+  const tileSize = PUZZLE_SIZE / n;
+
+  // Pick random image from selected category
+  const pickImage = useCallback(() => {
+    const imgs = CATEGORIES[categoryIdx].images;
+    const url = imgs[Math.floor(Math.random() * imgs.length)];
+    setImageUrl(url);
+  }, [categoryIdx]);
+
+  // Pick image whenever category changes on setup screen
+  useEffect(() => {
+    if (screen === 'setup') {
+      pickImage();
+    }
+  }, [categoryIdx, screen, pickImage]);
+
+  // Start timer when playing
+  useEffect(() => {
+    if (screen === 'playing') {
+      timerRef.current = setInterval(() => {
+        setElapsedTime(t => t + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [screen]);
+
+  const startPuzzle = () => {
+    if (!imageUrl) pickImage();
+    const shuffled = generateShuffledTiles(n);
+    setTiles(shuffled);
     setMoves(0);
-    setStatus('playing');
+    setElapsedTime(0);
+    setScreen('playing');
   };
 
-  useEffect(() => {
-    shuffleBoard();
-  }, []);
+  const handleTileClick = (idx: number) => {
+    if (screen !== 'playing' || showPreview) return;
+    if (tiles[idx] === 0) return; // clicked the empty tile
 
-  const handleTileClick = (index: number) => {
-    if (status !== 'playing') return;
-
-    const tileVal = board[index];
-    if (tileVal === 0) return; // clicked empty
-
-    // Find empty slot (0)
-    const emptyIdx = board.indexOf(0);
-
-    const tileRow = Math.floor(index / 3);
-    const tileCol = index % 3;
-    const emptyRow = Math.floor(emptyIdx / 3);
-    const emptyCol = emptyIdx % 3;
+    const emptyIdx = tiles.indexOf(0);
+    const row = Math.floor(idx / n);
+    const col = idx % n;
+    const emptyRow = Math.floor(emptyIdx / n);
+    const emptyCol = emptyIdx % n;
 
     const isAdjacent =
-      (Math.abs(tileRow - emptyRow) === 1 && tileCol === emptyCol) ||
-      (Math.abs(tileCol - emptyCol) === 1 && tileRow === emptyRow);
+      (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+      (Math.abs(col - emptyCol) === 1 && row === emptyRow);
 
-    if (isAdjacent) {
-      const nextBoard = [...board];
-      nextBoard[emptyIdx] = tileVal;
-      nextBoard[index] = 0;
-      setBoard(nextBoard);
+    if (!isAdjacent) return;
 
-      const nextMoves = moves + 1;
-      setMoves(nextMoves);
-      audio.playClick();
+    audio.playClick();
+    const nextTiles = [...tiles];
+    nextTiles[emptyIdx] = nextTiles[idx];
+    nextTiles[idx] = 0;
+    const nextMoves = moves + 1;
+    setTiles(nextTiles);
+    setMoves(nextMoves);
 
-      // Check solved
-      let solved = true;
-      for (let i = 0; i < 9; i++) {
-        if (nextBoard[i] !== SOLVED_BOARD[i]) {
-          solved = false;
-          break;
-        }
-      }
+    if (isSolved(nextTiles)) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setFinalTime(elapsedTime + 1);
+      setFinalMoves(nextMoves);
+      setScreen('won');
+      audio.playWin();
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
 
-      if (solved) {
-        setStatus('won');
-        audio.playWin();
-        confetti({ particleCount: 80, spread: 60, origin: { y: 0.75 } });
-        const scoreValue = Math.max(1000 - nextMoves * 10, 100);
-        onUpdateRecord('puzzle', {
-          highScore: Math.max(record.highScore, scoreValue),
-          gamesPlayed: record.gamesPlayed + 1,
-          gamesWon: record.gamesWon + 1,
-        });
-      }
+      const scoreValue = Math.max(1000 - nextMoves * 5, 100);
+      onUpdateRecord('puzzle', {
+        highScore: Math.max(record.highScore, scoreValue),
+        gamesPlayed: record.gamesPlayed + 1,
+        gamesWon: record.gamesWon + 1,
+      });
     }
   };
 
-  const handleSimulateWin = () => {
-    audio.playWin();
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.75 } });
-    setStatus('won');
-    setBoard(SOLVED_BOARD);
-    setMoves(5);
-    onUpdateRecord('puzzle', {
-      highScore: Math.max(record.highScore, 950),
-      gamesPlayed: record.gamesPlayed + 1,
-      gamesWon: record.gamesWon + 1,
-    });
+  const handlePreview = () => {
+    if (showPreview) return;
+    setShowPreview(true);
+    previewTimerRef.current = setTimeout(() => {
+      setShowPreview(false);
+    }, 1500);
   };
 
-  const handleSimulateLoss = () => {
-    audio.playLose();
-    setStatus('lost');
-    onUpdateRecord('puzzle', {
-      highScore: record.highScore,
-      gamesPlayed: record.gamesPlayed + 1,
-      gamesWon: record.gamesWon,
-    });
-  };
-
-  const handleReset = () => {
+  const handlePlayAgain = () => {
     audio.playClick();
-    shuffleBoard();
+    setScreen('setup');
+    setShowPreview(false);
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    };
+  }, []);
+
+  // ── Setup Screen ──────────────────────────────────────────────────────────
+  if (screen === 'setup') {
+    return (
+      <div data-testid="game-puzzle" style={{ width: '100%' }}>
+        <GameWrapper
+          title="Photo Puzzle"
+          instructions={metadata.instructions}
+          onBack={onBack}
+          highScore={record.highScore}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%' }}>
+            {/* Category row */}
+            <div style={{ width: '100%' }}>
+              <p style={{ fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.08em', marginBottom: '8px', color: 'var(--gray-dark)', textTransform: 'uppercase' }}>
+                Category
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {CATEGORIES.map((cat, i) => (
+                  <button
+                    key={cat.name}
+                    onClick={() => { audio.playClick(); setCategoryIdx(i); }}
+                    className="brutalist-button"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '0.8rem',
+                      background: categoryIdx === i ? 'var(--fg)' : 'var(--bg)',
+                      color: categoryIdx === i ? 'var(--bg)' : 'var(--fg)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Difficulty row */}
+            <div style={{ width: '100%' }}>
+              <p style={{ fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.08em', marginBottom: '8px', color: 'var(--gray-dark)', textTransform: 'uppercase' }}>
+                Difficulty
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {DIFFICULTIES.map((d, i) => (
+                  <button
+                    key={d.label}
+                    onClick={() => { audio.playClick(); setDifficultyIdx(i); }}
+                    className="brutalist-button"
+                    style={{
+                      padding: '6px 14px',
+                      fontSize: '0.8rem',
+                      background: difficultyIdx === i ? 'var(--fg)' : 'var(--bg)',
+                      color: difficultyIdx === i ? 'var(--bg)' : 'var(--fg)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    {d.label} ({d.grid}×{d.grid})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Image preview */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%' }}>
+              {imageUrl && (
+                <div
+                  style={{
+                    width: '160px',
+                    height: '160px',
+                    backgroundImage: `url(${imageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: '3px solid var(--border)',
+                    boxShadow: '4px 4px 0 var(--border)',
+                  }}
+                />
+              )}
+              <button
+                className="brutalist-button"
+                onClick={() => { audio.playClick(); pickImage(); }}
+                style={{ padding: '6px 16px', fontSize: '0.8rem' }}
+              >
+                🎲 Pick Image
+              </button>
+            </div>
+
+            {/* Start button */}
+            <button
+              className="brutalist-button"
+              onClick={startPuzzle}
+              style={{ padding: '10px 32px', fontSize: '1rem', fontWeight: 'bold' }}
+            >
+              START PUZZLE
+            </button>
+          </div>
+        </GameWrapper>
+      </div>
+    );
+  }
+
+  // ── Win Screen ────────────────────────────────────────────────────────────
+  if (screen === 'won') {
+    const scoreValue = Math.max(1000 - finalMoves * 5, 100);
+    return (
+      <div data-testid="game-puzzle" style={{ width: '100%' }}>
+        <GameWrapper
+          title="Photo Puzzle"
+          instructions={metadata.instructions}
+          onBack={onBack}
+          highScore={record.highScore}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', textAlign: 'center' }}>
+            {/* Solved image */}
+            <div
+              style={{
+                width: '220px',
+                height: '220px',
+                backgroundImage: `url(${imageUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                border: '4px solid var(--border)',
+                boxShadow: '6px 6px 0 var(--border)',
+              }}
+            />
+            <div>
+              <p style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '6px' }}>🎉 PUZZLE SOLVED!</p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--gray-dark)', marginBottom: '4px' }}>
+                Time: <strong>{formatTime(finalTime)}</strong> &nbsp;|&nbsp; Moves: <strong>{finalMoves}</strong>
+              </p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--gray-dark)' }}>
+                Score: <strong>{scoreValue}</strong>
+              </p>
+            </div>
+            <button
+              className="brutalist-button"
+              onClick={handlePlayAgain}
+              style={{ padding: '10px 32px', fontSize: '1rem', fontWeight: 'bold' }}
+            >
+              PLAY AGAIN
+            </button>
+          </div>
+        </GameWrapper>
+      </div>
+    );
+  }
+
+  // ── Playing Screen ────────────────────────────────────────────────────────
   return (
     <div data-testid="game-puzzle" style={{ width: '100%' }}>
       <GameWrapper
-        title="Puzzle"
+        title="Photo Puzzle"
         instructions={metadata.instructions}
         onBack={onBack}
-        onReset={handleReset}
         highScore={record.highScore}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '300px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-            <span>State: {moves}</span>
-            <span>STATUS: {status.toUpperCase()}</span>
-          </div>
-
-          {/* Grid layout */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' }}>
+          {/* Stats row */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '8px',
-              width: '240px',
-              height: '240px',
-              padding: '8px',
-              border: '4px solid var(--border)',
-              backgroundColor: 'var(--gray-light)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: `${PUZZLE_SIZE}px`,
+              maxWidth: '100%',
+              fontSize: '0.85rem',
+              fontWeight: 'bold',
             }}
           >
-            {board.map((tile, idx) => {
-              const isEmpty = tile === 0;
+            <span>⏱ {formatTime(elapsedTime)}</span>
+            <button
+              className="brutalist-button"
+              onClick={handlePreview}
+              disabled={showPreview}
+              style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+            >
+              👁 Preview
+            </button>
+            <span>Moves: {moves}</span>
+          </div>
+
+          {/* Puzzle grid */}
+          <div
+            style={{
+              position: 'relative',
+              width: `${PUZZLE_SIZE}px`,
+              height: `${PUZZLE_SIZE}px`,
+              maxWidth: '100%',
+              border: '3px solid var(--border)',
+              boxShadow: '4px 4px 0 var(--border)',
+              overflow: 'hidden',
+              display: 'grid',
+              gridTemplateColumns: `repeat(${n}, ${tileSize}px)`,
+              gridTemplateRows: `repeat(${n}, ${tileSize}px)`,
+            }}
+          >
+            {tiles.map((tileVal, idx) => {
+              const isEmpty = tileVal === 0;
+              // The tile's original position in the solved image
+              const origRow = Math.floor(tileVal / n);
+              const origCol = tileVal % n;
+
               return (
                 <button
                   key={idx}
                   onClick={() => handleTileClick(idx)}
-                  disabled={status !== 'playing' || isEmpty}
+                  disabled={isEmpty}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    fontFamily: 'var(--font-mono)',
-                    backgroundColor: isEmpty ? 'transparent' : 'var(--bg)',
-                    color: 'var(--fg)',
-                    border: isEmpty ? 'none' : '3px solid var(--border)',
-                    cursor: isEmpty || status !== 'playing' ? 'default' : 'pointer',
-                    boxShadow: isEmpty ? 'none' : '2px 2px 0 var(--border)',
-                    transition: 'all 0.1s ease',
+                    width: `${tileSize}px`,
+                    height: `${tileSize}px`,
+                    padding: 0,
+                    margin: 0,
+                    border: isEmpty ? 'none' : '1px solid rgba(0,0,0,0.25)',
+                    cursor: isEmpty ? 'default' : 'pointer',
+                    backgroundImage: isEmpty ? 'none' : `url(${imageUrl})`,
+                    backgroundSize: `${PUZZLE_SIZE}px ${PUZZLE_SIZE}px`,
+                    backgroundPosition: isEmpty ? 'unset' : `-${origCol * tileSize}px -${origRow * tileSize}px`,
+                    backgroundColor: isEmpty ? 'var(--gray-dark)' : 'transparent',
+                    transition: 'filter 0.1s',
+                    filter: 'none',
+                    outline: 'none',
+                    boxSizing: 'border-box',
                   }}
-                >
-                  {!isEmpty ? tile : ''}
-                </button>
+                  onMouseEnter={e => {
+                    if (!isEmpty) (e.currentTarget as HTMLButtonElement).style.filter = 'brightness(1.15)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.filter = 'none';
+                  }}
+                />
               );
             })}
+
+            {/* Preview overlay */}
+            {showPreview && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundImage: `url(${imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  opacity: 0.85,
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                }}
+              />
+            )}
           </div>
 
-          {status === 'won' && (
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <p style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '8px' }}>CONGRATULATIONS! PUZZLE SOLVED.</p>
-              <button className="brutalist-button" onClick={shuffleBoard}>PLAY AGAIN</button>
-            </div>
-          )}
-
-          {status === 'lost' && (
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <p style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '8px' }}>YOU GAVE UP! TRY AGAIN.</p>
-              <button className="brutalist-button" onClick={shuffleBoard}>TRY AGAIN</button>
-            </div>
-          )}
-
-          <div style={{ display: 'none' }}>
-            <button onClick={handleSimulateWin}>Simulate Win</button>
-            <button onClick={handleSimulateLoss}>Simulate Loss</button>
-          </div>
+          {/* Back to setup link */}
+          <button
+            className="brutalist-button"
+            onClick={handlePlayAgain}
+            style={{ padding: '6px 16px', fontSize: '0.8rem', marginTop: '4px' }}
+          >
+            ↩ Change Puzzle
+          </button>
         </div>
       </GameWrapper>
     </div>
