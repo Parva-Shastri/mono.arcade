@@ -96,6 +96,10 @@ export const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('mono_games_theme', theme);
+    const metaTags = document.querySelectorAll('meta[name="theme-color"]');
+    metaTags.forEach(meta => {
+      meta.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
+    });
   }, [theme]);
 
   useEffect(() => {

@@ -18,6 +18,18 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
+            src: 'favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
+          {
+            src: 'favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'maskable'
+          },
+          {
             src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
@@ -38,4 +50,7 @@ export default defineConfig({
     })
   ],
   base: './',
+  preview: {
+    allowedHosts: true,
+  },
 })
