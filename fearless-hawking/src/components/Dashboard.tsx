@@ -34,6 +34,9 @@ const GAME_CATEGORIES: Record<GameId, string[]> = {
   mario: ['classic', 'action'],
   carrom: ['classic'],
   spaceshooter: ['action'],
+  slingshot: ['action'],
+  puzzle: ['puzzle'],
+  carracing: ['action'],
 };
 
 export const Dashboard: React.FC<DashboardProps> = ({
